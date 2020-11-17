@@ -155,7 +155,7 @@ class CovidCTDataset(Dataset):
         img_path = self.img_list[idx][0]
         image = Image.open(img_path,'r')
 
-        #image = image.convert('F')
+        image = image.convert('F')
 
         image_np = np.array(image)
 
@@ -183,7 +183,7 @@ class CovidCTDataset(Dataset):
         #print("10, 10: ", im.getpixel((10, 10)))
         #print("101, 101: ", im.getpixel((100, 101)))
 
-        #image = image.convert('F')
+        image = image.convert('F')
         
         if self.transform:
             #print("transform")
@@ -202,17 +202,17 @@ class CovidCTDataset(Dataset):
 
 
 if __name__ == '__main__':
-    trainset = CovidCTDataset(root_dir='../',
-                              txt_COVID='../ncp_train.txt',
-                              txt_NonCOVID='../np_train.txt',
+    trainset = CovidCTDataset(root_dir='/home/garvit/analysis_ai_data1/',
+                              txt_COVID='/home/garvit/analysis_ai_data1/np_train.txt',
+                              txt_NonCOVID='/home/garvit/analysis_ai_data1/ncp_train.txt',
                               transform= train_transformer)
-    valset = CovidCTDataset(root_dir='../analysis_ai_data/',
-                              txt_COVID='../ncp_val.txt',
-                              txt_NonCOVID='../np_val.txt',
+    valset = CovidCTDataset(root_dir='/home/garvit/analysis_ai_data1/',
+                              txt_COVID='/home/garvit/analysis_ai_data1/np_val.txt',
+                              txt_NonCOVID='/home/garvit/analysis_ai_data1/ncp_val.txt',
                               transform= val_transformer)
-    testset = CovidCTDataset(root_dir='../analysis_ai_data/',
-                              txt_COVID='../ncp_test.txt',
-                              txt_NonCOVID='../np_test.txt',
+    testset = CovidCTDataset(root_dir='/home/garvit/analysis_ai_data1/',
+                              txt_COVID='/home/garvit/analysis_ai_data1/np_test.txt',
+                              txt_NonCOVID='/home/garvit/analysis_ai_data1/ncp_test.txt',
                               transform= val_transformer)
 #
     #print(trainset.__len__())
@@ -235,7 +235,7 @@ if __name__ == '__main__':
 # In[154]:
 
 alpha = None
-device = 'cuda'
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def train(optimizer, epoch):
 
@@ -247,8 +247,8 @@ def train(optimizer, epoch):
     for batch_index, batch_samples in enumerate(train_loader):
 
         # move data to device
-        #data, target = batch_samples['img'].to(device), batch_samples['label'].to(device)
-        data, target = batch_samples['img'], batch_samples['label']
+        data, target = batch_samples['img'].to(device), batch_samples['label'].to(device)
+        #data, target = batch_samples['img'], batch_samples['label']
 #        data = data[:, 0, :, :]
 #        data = data[:, None, :, :]
 #         data, targets_a, targets_b, lam = mixup_data(data, target.long(), alpha, use_cuda=True)
@@ -274,6 +274,13 @@ def train(optimizer, epoch):
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tTrain Loss: {:.6f}'.format(
                 epoch, batch_index, len(train_loader),
                 100.0 * batch_index / len(train_loader), loss.item()/ bs))
+            
+            f = open('model_result/{}_train_loss.txt'.format(modelname), 'a+')
+            f.write(loss.item()/ bs)
+            f.write(' ')
+            f.close()
+
+
 
     print('\nTrain set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         train_loss/len(train_loader.dataset), train_correct, len(train_loader.dataset),
@@ -313,8 +320,8 @@ def val(epoch):
         targetlist=[]
         # Predict
         for batch_index, batch_samples in enumerate(val_loader):
-            #data, target = batch_samples['img'].to(device), batch_samples['label'].to(device)
-            data, target = batch_samples['img'], batch_samples['label']
+            data, target = batch_samples['img'].to(device), batch_samples['label'].to(device)
+            #data, target = batch_samples['img'], batch_samples['label']
 #            data = data[:, 0, :, :]
 #            data = data[:, None, :, :]
             output = model(data)
@@ -365,8 +372,8 @@ def test(epoch):
         # Predict
         for batch_index, batch_samples in enumerate(test_loader):
 
-            #data, target = batch_samples['img'].to(device), batch_samples['label'].to(device)
-            data, target = batch_samples['img'], batch_samples['label']
+            data, target = batch_samples['img'].to(device), batch_samples['label'].to(device)
+            #data, target = batch_samples['img'], batch_samples['label']
             output = model(data)
 
 
@@ -445,8 +452,8 @@ def test(epoch):
 
 ### Dense121
 import torchvision.models as models
-#model = models.densenet121(pretrained=True).cuda()
-model = models.densenet121(pretrained=True)
+model = models.densenet121(pretrained=True).cuda()
+#model = models.densenet121(pretrained=True)
 modelname = 'Dense121'
 
 
